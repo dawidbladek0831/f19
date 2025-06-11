@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-postgres-db
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak-postgres-db
+  template:
+    metadata:
+      labels:
+        app: keycloak-postgres-db
+    spec:
+      containers:
+        - name: keycloak-postgres
+          image: bitnami/postgresql:16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRESQL_DATABASE
+              value: postgres
+            - name: POSTGRESQL_USERNAME
+              value: postgres
+            - name: POSTGRESQL_PASSWORD
+              value: postgres
+          volumeMounts:
+            - name: keycloak-postgres-data
+              mountPath: /bitnami/postgresql
+      volumes:
+        - name: keycloak-postgres-data
+          emptyDir: {}

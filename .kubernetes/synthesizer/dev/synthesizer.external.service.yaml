@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: file-storage-service
+  name: synthesizer
   namespace: dev
 spec:
   type: LoadBalancer
   selector:
-    app: file-storage-service
+    app: synthesizer
   ports:
     - name: http
-      port: 9022
-      targetPort: 8080
+      port: 9023
+      targetPort: 80

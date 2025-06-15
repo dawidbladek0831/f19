@@ -30,3 +30,46 @@ Mongo
 FFS
 
     docker-compose -p f19 -f .\.docker\docker-compose-file_storage_service.yaml up -d
+
+
+# kubernetes
+## setup
+make soure that u are auth in gcloud
+
+
+    $ gcloud init
+
+make sure that google-cloud-cli-gke-gcloud-auth-plugin is available
+
+    $ sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
+
+## enviroment
+
+
+    $ terraform init
+    $ terraform apply
+
+
+get kubeconfig
+
+
+    $ gcloud container clusters get-credentials f-gke-cluster --zone europe-central2-a --project f-projects-463016
+
+## cluster
+
+apply cert-manager
+
+
+    $ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+
+
+config .env file based on .env.example file
+
+run base init script 
+
+    $ sh .kubernetes/base/init.sh
+
+run dev and prod scripts
+
+    $ sh .kubernetes/dev/init.sh
+    $ sh .kubernetes/prod/init.sh

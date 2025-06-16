@@ -5,6 +5,9 @@ metadata:
   namespace: shared
 spec:
   gatewayClassName: gke-l7-global-external-managed
+  addresses:
+    - type: NamedAddress
+      value: gateway-ip-address
   listeners:
     - name: http
       hostname: "*.dawidbladek0831.org"
@@ -29,11 +32,11 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-        - kind: Secret
-          group: ""
-          name: dawidbladek-org-cert-secret
-          namespace: shared
---- 
+          - kind: Secret
+            group: ""
+            name: dawidbladek-org-cert-secret
+            namespace: shared
+---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -45,11 +48,11 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-cloudflare-key
     solvers:
-    - dns01:
-        cloudflare:
-          apiTokenSecretRef:
-            name: cloudflare-api-token
-            key: api-token
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -64,5 +67,6 @@ spec:
   commonName: dawidbladek0831.org
   dnsNames:
     - dawidbladek0831.org
+    - temp.dawidbladek0831.org
     - f19.dawidbladek0831.org
     - devf19.dawidbladek0831.org

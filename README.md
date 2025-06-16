@@ -46,8 +46,8 @@ make sure that google-cloud-cli-gke-gcloud-auth-plugin is available
 ## enviroment
 
 
-    $ terraform init
-    $ terraform apply
+    $ terraform -chdir=.kubernetes/base/env init
+    $ terraform -chdir=.kubernetes/base/env apply 
 
 
 get kubeconfig
@@ -67,9 +67,9 @@ config .env file based on .env.example file
 
 run base init script 
 
-    $ sh .kubernetes/base/init.sh
+    $ sh .kubernetes/base/apply.sh
 
 run dev and prod scripts
 
-    $ sh .kubernetes/dev/init.sh
-    $ sh .kubernetes/prod/init.sh
+    $ sh .kubernetes/dev/apply.sh
+    $ sh .kubernetes/prod/apply.sh

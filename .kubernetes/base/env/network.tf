@@ -1,3 +1,9 @@
+# resource "google_compute_global_address" "gateway_ip_address" {
+#   name         = "gateway-ip-address"
+#   ip_version   = "IPV4"
+#   address_type = "EXTERNAL"
+# }
+
 resource "google_compute_network" "vpc_network" {
   name = "f-vpc-network"
 }

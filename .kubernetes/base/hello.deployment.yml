@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-site-content
+  namespace: shared
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Hello Ala</title>
+    </head>
+    <body>
+      <h1>Ala ma kota!</h1>
+    </body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: static-hello-site
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: static-hello-site
+  template:
+    metadata:
+      labels:
+        app: static-hello-site
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html-volume
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: html-volume
+          configMap:
+            name: hello-site-content
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: static-hello-site-service
+  namespace: default
+spec:
+  selector:
+    app: static-hello-site
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

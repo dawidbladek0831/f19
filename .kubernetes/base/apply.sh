@@ -14,7 +14,7 @@ kubectl create secret generic cloudflare-api-token \
 
 
 # create objects
-kubectl apply -f "$SCRIPT_DIR/shared.namespace.yaml" 
-kubectl apply -f "$SCRIPT_DIR/dev.namespace.yaml" 
-kubectl apply -f "$SCRIPT_DIR/prod.namespace.yaml" 
-kubectl apply -f "$SCRIPT_DIR/gateway.yaml" 
+kubectl apply -f "$SCRIPT_DIR/shared.namespace.yml" 
+kubectl apply -f "$SCRIPT_DIR/gateway.yml" 
+# kubectl apply -f "$SCRIPT_DIR/hello.deployment.yml" 
+kubectl apply -f "$SCRIPT_DIR/shared.route.yml" 

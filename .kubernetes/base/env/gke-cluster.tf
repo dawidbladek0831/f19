@@ -50,7 +50,8 @@ resource "google_project_iam_member" "sa_roles" {
   for_each = toset([
     "roles/container.nodeServiceAccount",
     "roles/compute.networkUser",
-    "roles/iam.serviceAccountUser"
+    "roles/iam.serviceAccountUser",
+    "roles/compute.publicIpAdmin"
   ])
   role = each.value
 }

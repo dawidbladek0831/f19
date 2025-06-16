@@ -9,6 +9,16 @@ spec:
     - type: NamedAddress
       value: gateway-ip-address
   listeners:
+    - name: http-root-domain
+      hostname: "dawidbladek0831.org"
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
     - name: http
       hostname: "*.dawidbladek0831.org"
       protocol: HTTP
@@ -19,6 +29,24 @@ spec:
           selector:
             matchLabels:
               shared-gateway-access: "true"
+
+    - name: https-root-domain
+      protocol: HTTPS
+      port: 443
+      hostname: "dawidbladek0831.org"
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: dawidbladek-org-cert-secret
+            namespace: shared
     - name: https
       protocol: HTTPS
       port: 443

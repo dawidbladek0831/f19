@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: dev
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: bitnami/keycloak:21
+          ports:
+            - containerPort: 8080
+            - containerPort: 8443
+          env:
+            - name: KEYCLOAK_CREATE_ADMIN_USER
+              value: "true"
+            - name: KEYCLOAK_ADMIN_USER
+              value: user
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: password
+
+            - name: KEYCLOAK_DATABASE_HOST
+              value: keycloak-postgres-service
+            - name: KEYCLOAK_DATABASE_PORT
+              value: "5432"
+            - name: KEYCLOAK_DATABASE_NAME
+              value: postgres
+            - name: KEYCLOAK_DATABASE_USER
+              value: postgres
+            - name: KEYCLOAK_DATABASE_PASSWORD
+              value: postgres
+            - name: KEYCLOAK_DATABASE_SCHEMA
+              value: public
+            - name: KEYCLOAK_JDBC_PARAMS
+              value: connectTimeout=30000
+            - name: KEYCLOAK_ENABLE_HTTPS
+              value: "false"
+            
+            # Wlaczenie HTTPS - jesli chcesz, aby Keycloak sam obslugiwal HTTPS (rzadziej uzywane z Gateway API)
+            # Jesli uzywasz Gateway API do terminacji TLS, ustawienie tego na 'true' moze byc zbedne
+            # lub wymagac dodatkowej konfiguracji certyfikatow w Keycloak
+            # - name: KC_HTTPS_PORT
+            #   value: "8443"
+            # - name: KC_HTTPS_KEYSTORE_FILE
+            #   value: /etc/x509/https/tls.jks # Przyklad, jesli montujesz certyfikat
+            # - name: KC_HTTPS_KEYSTORE_PASSWORD
+            #   value: changeit # Przyklad, jesli montujesz certyfikat
+            
+            # Hostnames i proxy - wazne dla poprawnego dzialania Keycloak za reverse proxy/load balancerem
+            - name: KEYCLOAK_HOSTNAME
+              value: devkeycloak.dawidbladek0831.org # Ustaw swoja domene dla Keycloak
+            - name: KEYCLOAK_HOSTNAME_ADMIN
+              value: devkeycloak.dawidbladek0831.org
+            - name: KEYCLOAK_PROXY
+              value: edge # Ważne dla pracy za Load Balancerem/Gateway API
+            - name: KEYCLOAK_HTTP_ENABLED
+              value: "true" # Pozwól na HTTP, jesli bedzie przekierowywane na HTTPS przez Gateway
+
+            # Dodatkowe ustawienia, jesli potrzebujesz
+            # - name: KEYCLOAK_HTTP_RELATIVE_PATH
+            #   value: / # Jesli Keycloak ma byc dostepny pod sciezka glowna
+            # KC_HEALTH_ENABLED: "true"
+            # KC_METRICS_ENABLED: "true"
+
+          readinessProbe: # Sprawdzanie gotowosci Keycloak
+            httpGet:
+              path: /realms/master # Zmien na sciezke Twojego realm'a, jesli masz inny
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe: # Sprawdzanie zycia Keycloak
+            httpGet:
+              path: /realms/master
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 3
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-service
+  namespace: dev
+spec:
+  selector:
+    app: keycloak # Selektor musi pasowac do Deploymentu Keycloak
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080 # Port HTTP Keycloak w kontenerze
+    - name: https
+      port: 443
+      targetPort: 8443 # Port HTTPS Keycloak w kontenerze (jesli uzywasz)
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: keycloak-route
+  namespace: dev
+  labels:
+    shared-gateway-access: "true"
+spec:
+  parentRefs:
+  - name: shared-gateway
+    namespace: shared
+  hostnames:
+  - "devkeycloak.dawidbladek0831.org"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: keycloak-service
+      port: 80 

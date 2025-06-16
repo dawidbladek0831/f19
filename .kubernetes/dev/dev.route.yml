@@ -11,5 +11,5 @@ spec:
     - "devf19.dawidbladek0831.org"
   rules:
     - backendRefs:
-        - name: hello-svc
+        - name: front-service
           port: 80

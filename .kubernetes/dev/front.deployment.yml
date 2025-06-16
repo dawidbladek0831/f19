@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: front-config-map
+  namespace: dev
+data:
+  config.json: |
+    {
+      "syntesizerBaseUrl": "http://synthesizer-service:80",
+      "objectBaseUrl": "http://file-storage-service:9022",
+      "authorityBaseUrl": "http://keycloak-service:80/realms/f19"
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front-deployment
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: front
+  template:
+    metadata:
+      labels:
+        app: front
+    spec:
+      containers:
+        - name: front
+          image: ghcr.io/dawidbladek0831/f19-front:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/nginx/html/config.json
+              subPath: config.json
+      volumes:
+        - name: config
+          configMap:
+            name: front-config-map
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-service
+  namespace: dev
+spec:
+  selector:
+    app: front
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

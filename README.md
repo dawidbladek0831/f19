@@ -31,7 +31,14 @@ FFS
 
     docker-compose -p f19 -f .\.docker\docker-compose-file_storage_service.yaml up -d
 
+# docker
+## front
+build image
 
+
+    sudo docker buildx build . -f ./front/.docker/Dockerfile -t ghcr.io/dawidbladek0831/f19-front:latest
+
+    
 # kubernetes
 ## setup
 make soure that u are auth in gcloud

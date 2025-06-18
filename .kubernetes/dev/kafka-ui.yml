@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-ui
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-ui
+  template:
+    metadata:
+      labels:
+        app: kafka-ui
+    spec:
+      containers:
+        - name: kafka-ui
+          image: obsidiandynamics/kafdrop
+          ports:
+            - containerPort: 9000
+          env:
+            - name: KAFKA_BROKERCONNECT
+              value: kafka-service:9092
+            - name: SERVER_SERVLET_CONTEXTPATH
+              value: /
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui-service
+  namespace: dev
+spec:
+  selector:
+    app: kafka-ui
+  ports:
+    - name: kafka-ui
+      port: 80
+      targetPort: 9000

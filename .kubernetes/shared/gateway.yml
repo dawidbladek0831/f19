@@ -1,0 +1,191 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: shared-gateway
+  namespace: shared
+spec:
+  gatewayClassName: gke-l7-global-external-managed
+  addresses:
+    - type: NamedAddress
+      value: gateway-ip-address
+  listeners:
+    - name: http-root
+      hostname: "dawidbladek0831.org"
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+    - name: http
+      hostname: "*.dawidbladek0831.org"
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+    - name: http-dev
+      hostname: "*.dev.dawidbladek0831.org"
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+    - name: http-f19
+      hostname: "*.f19.dawidbladek0831.org"
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+    - name: http-f19-dev
+      hostname: "*.f19.dev.dawidbladek0831.org"
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+
+    - name: https-root
+      protocol: HTTPS
+      port: 443
+      hostname: "dawidbladek0831.org"
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: dawidbladek0831-org-cert-secret
+            namespace: shared
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: "*.dawidbladek0831.org"
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: dawidbladek0831-org-cert-secret
+            namespace: shared
+    - name: https-dev
+      protocol: HTTPS
+      port: 443
+      hostname: "*.dev.dawidbladek0831.org"
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: dawidbladek0831-org-cert-secret
+            namespace: shared
+    - name: https-f19
+      protocol: HTTPS
+      port: 443
+      hostname: "*.f19.dawidbladek0831.org"
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: dawidbladek0831-org-cert-secret
+            namespace: shared
+    - name: https-f19-dev
+      protocol: HTTPS
+      port: 443
+      hostname: "*.f19.dev.dawidbladek0831.org"
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: dawidbladek0831-org-cert-secret
+            namespace: shared
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-cloudflare
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: dawidbladek0831@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-cloudflare-key
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dawidbladek0831-org-cert
+  namespace: shared
+spec:
+  secretName: dawidbladek0831-org-cert-secret
+  issuerRef:
+    name: letsencrypt-cloudflare
+    kind: ClusterIssuer
+  privateKey:
+    rotationPolicy: Always
+  commonName: dawidbladek0831.org
+  dnsNames:
+    - dawidbladek0831.org
+
+    - dev.dawidbladek0831.org
+    - auth.dev.dawidbladek0831.org
+    - kafka.dev.dawidbladek0831.org
+    - mongo.dev.dawidbladek0831.org
+
+    - f19.dev.dawidbladek0831.org
+    - api.f19.dev.dawidbladek0831.org
+    
+    - temp1.dawidbladek0831.org
+    - temp2.dawidbladek0831.org

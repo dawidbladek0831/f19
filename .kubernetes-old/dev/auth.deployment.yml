@@ -1,0 +1,202 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: auth-db-pvc
+  namespace: dev
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: auth-db
+  namespace: dev
+spec:
+  serviceName: auth-db-service
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: auth-db
+  template:
+    metadata:
+      labels:
+        app: auth-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: postgres
+            - name: POSTGRES_USERNAME
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_INITDB_ARGS
+              value: "--encoding=UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+            
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -h
+                - localhost
+                - -p
+                - "5432"
+                - -U
+                - postgres
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -h
+                - localhost
+                - -p
+                - "5432"
+                - -U
+                - postgres
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: auth-db-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-db-service
+  namespace: dev
+spec:
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: auth-db
+  clusterIP: None
+---
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: dev
+  labels:
+    app: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: keycloak
+          image: bitnami/keycloak:21
+          ports:
+            - containerPort: 8080
+            - containerPort: 8443
+          env:
+            - name: KEYCLOAK_CREATE_ADMIN_USER
+              value: "true"
+            - name: KEYCLOAK_ADMIN_USER
+              value: user
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: password
+
+            - name: KEYCLOAK_DATABASE_HOST
+              value: auth-db-service
+            - name: KEYCLOAK_DATABASE_PORT
+              value: "5432"
+            - name: KEYCLOAK_DATABASE_NAME
+              value: postgres
+            - name: KEYCLOAK_DATABASE_USER
+              value: postgres
+            - name: KEYCLOAK_DATABASE_PASSWORD
+              value: postgres
+            - name: KEYCLOAK_DATABASE_SCHEMA
+              value: public
+            - name: KEYCLOAK_JDBC_PARAMS
+              value: connectTimeout=30000
+            - name: KEYCLOAK_ENABLE_HTTPS
+              value: "false"
+            
+            # Wlaczenie HTTPS - jesli chcesz, aby Keycloak sam obslugiwal HTTPS (rzadziej uzywane z Gateway API)
+            # Jesli uzywasz Gateway API do terminacji TLS, ustawienie tego na 'true' moze byc zbedne
+            # lub wymagac dodatkowej konfiguracji certyfikatow w Keycloak
+            # - name: KC_HTTPS_PORT
+            #   value: "8443"
+            # - name: KC_HTTPS_KEYSTORE_FILE
+            #   value: /etc/x509/https/tls.jks # Przyklad, jesli montujesz certyfikat
+            # - name: KC_HTTPS_KEYSTORE_PASSWORD
+            #   value: changeit # Przyklad, jesli montujesz certyfikat
+            
+            # Hostnames i proxy - wazne dla poprawnego dzialania Keycloak za reverse proxy/load balancerem
+            - name: KEYCLOAK_HOSTNAME
+              value: auth.f19.dev.dawidbladek0831.org # Ustaw swoja domene dla Keycloak
+            - name: KEYCLOAK_HOSTNAME_ADMIN
+              value: auth.f19.dev.dawidbladek0831.org
+            - name: KEYCLOAK_PROXY
+              value: edge # Ważne dla pracy za Load Balancerem/Gateway API
+            - name: KEYCLOAK_HTTP_ENABLED
+              value: "true" # Pozwól na HTTP, jesli bedzie przekierowywane na HTTPS przez Gateway
+
+            # Dodatkowe ustawienia, jesli potrzebujesz
+            # - name: KEYCLOAK_HTTP_RELATIVE_PATH
+            #   value: / # Jesli Keycloak ma byc dostepny pod sciezka glowna
+            # KC_HEALTH_ENABLED: "true"
+            # KC_METRICS_ENABLED: "true"
+
+          readinessProbe: # Sprawdzanie gotowosci Keycloak
+            httpGet:
+              path: /realms/master # Zmien na sciezke Twojego realm'a, jesli masz inny
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe: # Sprawdzanie zycia Keycloak
+            httpGet:
+              path: /realms/master
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 3
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: dev
+spec:
+  selector:
+    app: auth # Selektor musi pasowac do Deploymentu Keycloak
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080 # Port HTTP Keycloak w kontenerze
+    - name: https
+      port: 443
+      targetPort: 8443 # Port HTTPS Keycloak w kontenerze (jesli uzywasz)

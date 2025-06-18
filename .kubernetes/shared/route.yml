@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: shared-route
+  namespace: shared
+spec:
+  parentRefs:
+    - name: shared-gateway
+      namespace: shared
+  hostnames:
+    - dawidbladek0831.org
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: default-page-service
+          port: 80

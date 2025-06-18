@@ -35,9 +35,16 @@ FFS
 ## front
 build image
 
+    
+    sudo docker buildx build . -f ./.docker/Dockerfile -t ghcr.io/dawidbladek0831/f19-front:latest
+    docker push  ghcr.io/dawidbladek0831/f19-front:latest
+    
+## synthesizer
+build image
 
-    sudo docker buildx build . -f ./front/.docker/Dockerfile -t ghcr.io/dawidbladek0831/f19-front:latest
 
+    sudo docker buildx build . -f .docker/Dockerfile -t ghcr.io/dawidbladek0831/synthesizer:latest
+    docker push ghcr.io/dawidbladek0831/synthesizer:latest
     
 # kubernetes
 ## setup

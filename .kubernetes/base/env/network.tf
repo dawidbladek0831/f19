@@ -6,6 +6,7 @@
 
 resource "google_compute_network" "vpc_network" {
   name = "f-vpc-network"
+  auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "subnet" {
@@ -13,6 +14,15 @@ resource "google_compute_subnetwork" "subnet" {
   ip_cidr_range = "10.0.0.0/24"
   region        = var.region
   network       = google_compute_network.vpc_network.id
+}
+# --- proxy-only subnetwork ---
+resource "google_compute_subnetwork" "proxy_subnet" {
+  name          = "f-proxy-subnet" 
+  ip_cidr_range = "10.0.1.0/24" 
+  region        = var.region
+  network       = google_compute_network.vpc_network.id
+  purpose       = "REGIONAL_MANAGED_PROXY" # This is crucial for proxy-only subnetworks
+  role          = "ACTIVE"
 }
 
 resource "google_compute_firewall" "ssh" {

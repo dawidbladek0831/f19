@@ -1,19 +1,116 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: auth-db-pvc
+  namespace: dev
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: auth-db
+  namespace: dev
+spec:
+  serviceName: auth-db-service
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: auth-db
+  template:
+    metadata:
+      labels:
+        app: auth-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: postgres
+            - name: POSTGRES_USERNAME
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_INITDB_ARGS
+              value: "--encoding=UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+            
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -h
+                - localhost
+                - -p
+                - "5432"
+                - -U
+                - postgres
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -h
+                - localhost
+                - -p
+                - "5432"
+                - -U
+                - postgres
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: auth-db-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-db-service
+  namespace: dev
+spec:
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: auth-db
+  clusterIP: None
+---
+
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: keycloak
+  name: auth
   namespace: dev
   labels:
-    app: keycloak
+    app: auth
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: keycloak
+      app: auth
   template:
     metadata:
       labels:
-        app: keycloak
+        app: auth
     spec:
       containers:
         - name: keycloak
@@ -30,7 +127,7 @@ spec:
               value: password
 
             - name: KEYCLOAK_DATABASE_HOST
-              value: keycloak-postgres-service
+              value: auth-db-service
             - name: KEYCLOAK_DATABASE_PORT
               value: "5432"
             - name: KEYCLOAK_DATABASE_NAME
@@ -58,9 +155,9 @@ spec:
             
             # Hostnames i proxy - wazne dla poprawnego dzialania Keycloak za reverse proxy/load balancerem
             - name: KEYCLOAK_HOSTNAME
-              value: devkeycloak.dawidbladek0831.org # Ustaw swoja domene dla Keycloak
+              value: auth.f19.dev.dawidbladek0831.org # Ustaw swoja domene dla Keycloak
             - name: KEYCLOAK_HOSTNAME_ADMIN
-              value: devkeycloak.dawidbladek0831.org
+              value: auth.f19.dev.dawidbladek0831.org
             - name: KEYCLOAK_PROXY
               value: edge # Ważne dla pracy za Load Balancerem/Gateway API
             - name: KEYCLOAK_HTTP_ENABLED
@@ -91,11 +188,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: keycloak-service
+  name: auth-service
   namespace: dev
 spec:
   selector:
-    app: keycloak # Selektor musi pasowac do Deploymentu Keycloak
+    app: auth # Selektor musi pasowac do Deploymentu Keycloak
   ports:
     - name: http
       port: 80
@@ -103,25 +200,3 @@ spec:
     - name: https
       port: 443
       targetPort: 8443 # Port HTTPS Keycloak w kontenerze (jesli uzywasz)
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: keycloak-route
-  namespace: dev
-  labels:
-    shared-gateway-access: "true"
-spec:
-  parentRefs:
-  - name: shared-gateway
-    namespace: shared
-  hostnames:
-  - "devkeycloak.dawidbladek0831.org"
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: keycloak-service
-      port: 80 

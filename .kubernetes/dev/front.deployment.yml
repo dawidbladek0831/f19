@@ -6,9 +6,9 @@ metadata:
 data:
   config.json: |
     {
-      "syntesizerBaseUrl": "http://synthesizer-service:80",
+      "syntesizerBaseUrl": "https://synthesizer.internal.f19.dev.dawidbladek0831.org",
       "objectBaseUrl": "http://file-storage-service:9022",
-      "authorityBaseUrl": "http://keycloak-service:80/realms/f19"
+      "authorityUrl": "https://auth.internal.f19.dev.dawidbladek0831.org/realms/f19"
     }
 ---
 apiVersion: apps/v1

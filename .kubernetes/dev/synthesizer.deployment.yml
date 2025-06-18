@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: synthesizer
-          image: ghcr.io/dawidbladek0831/synthesizer:latest
+          image: ghcr.io/dawidbladek0831/synthesizer:0.1.0
           ports:
             - containerPort: 80
 ---

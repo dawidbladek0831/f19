@@ -9,7 +9,7 @@ spec:
     - type: NamedAddress
       value: gateway-ip-address
   listeners:
-    - name: http-root-domain
+    - name: http-root
       hostname: "dawidbladek0831.org"
       protocol: HTTP
       port: 80
@@ -29,8 +29,29 @@ spec:
           selector:
             matchLabels:
               shared-gateway-access: "true"
+    - name: http-f19
+      hostname: "*.f19.dawidbladek0831.org"
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+    - name: http-f19-dev
+      hostname: "*.f19.dev.dawidbladek0831.org"
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
 
-    - name: https-root-domain
+
+    - name: https-root
       protocol: HTTPS
       port: 443
       hostname: "dawidbladek0831.org"
@@ -45,7 +66,7 @@ spec:
         certificateRefs:
           - kind: Secret
             group: ""
-            name: dawidbladek-org-cert-secret
+            name: dawidbladek0831-org-cert-secret
             namespace: shared
     - name: https
       protocol: HTTPS
@@ -62,7 +83,41 @@ spec:
         certificateRefs:
           - kind: Secret
             group: ""
-            name: dawidbladek-org-cert-secret
+            name: dawidbladek0831-org-cert-secret
+            namespace: shared
+    - name: https-f19
+      protocol: HTTPS
+      port: 443
+      hostname: "*.f19.dawidbladek0831.org"
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: dawidbladek0831-org-cert-secret
+            namespace: shared
+    - name: https-f19-dev
+      protocol: HTTPS
+      port: 443
+      hostname: "*.f19.dev.dawidbladek0831.org"
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: dawidbladek0831-org-cert-secret
             namespace: shared
 ---
 apiVersion: cert-manager.io/v1
@@ -85,18 +140,16 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: dawidbladek-org-cert
+  name: dawidbladek0831-org-cert
   namespace: shared
 spec:
-  secretName: dawidbladek-org-cert-secret
+  secretName: dawidbladek0831-org-cert-secret
   issuerRef:
     name: letsencrypt-cloudflare
     kind: ClusterIssuer
   commonName: dawidbladek0831.org
   dnsNames:
     - dawidbladek0831.org
-    - temp.dawidbladek0831.org
-    - f19.dawidbladek0831.org
-    - keycloak.dawidbladek0831.org
-    - devf19.dawidbladek0831.org
-    - devkeycloak.dawidbladek0831.org
+    - f19.dev.dawidbladek0831.org
+    - auth.f19.dev.dawidbladek0831.org
+    - synthesizer.f19.dev.dawidbladek0831.org

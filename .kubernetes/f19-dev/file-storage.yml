@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: file-storage
+  namespace: f19-dev
+spec:
+  serviceName: file-storage
+  replicas: 1
+  selector:
+    matchLabels:
+      app: file-storage
+  template:
+    metadata:
+      labels:
+        app: file-storage
+    spec:
+      containers:
+        - name: file-storage
+          image: ghcr.io/dawidbladek0831/file-storage:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: APPLICATION_STORAGE_LOCAL_PATH
+              value: /data/fileStorageDirName
+            - name: SERVER_PORT
+              value: "8080"
+            - name: SPRING_APPLICATION_NAME
+              value: file-storage
+            - name: OAUTH2_RESOURCE_SERVER_JWT_ISSUER_URI
+              value: http://auth-service.dev.svc.cluster.local/realms/f19
+            - name: OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI
+              value: http://auth-service.dev.svc.cluster.local/realms/f19/protocol/openid-connect/certs
+            - name: MONGODB_HOST
+              value: mongo-service.dev.svc.cluster.local
+            - name: MONGODB_PORT
+              value: "27017"
+            - name: MONGODB_USERNAME
+              value: root
+            - name: MONGODB_PASSWORD
+              value: password
+            - name: MONGODB_DATABASE
+              value: file_storage_service
+            - name: MONGODB_AUTHENTICATION_DATABASE
+              value: admin
+            - name: KAFKA_BOOTSTRAP_SERVER
+              value: http://kafka-service.dev.svc.cluster.local:9092
+            - name: KAFKA_PRODUCER_CLIENT_ID
+              value: spring-boot-app-fss-producer
+            - name: KAFKA_CONSUMER_CLIENT_ID
+              value: spring-boot-app-fss-consumer
+            - name: KAFKA_CONSUMER_GROUP_ID
+              value: spring-boot-app-fss-consumer-group-id
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 12
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 12
+          volumeMounts:
+            - name: file-storage-storage
+              mountPath: /data/fileStorageDirName
+  volumeClaimTemplates:
+    - metadata:
+        name: file-storage-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: file-storage-service
+  namespace: f19-dev
+spec:
+  selector:
+    app: file-storage
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080

@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: front-nginx-config
+  namespace: f19-dev
+data:
+  nginx.conf: |
+    server {
+        listen 80;
+        server_name _;
+
+        root /usr/share/nginx/html;
+        index index.html;
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+
+        location = /config.json {
+            default_type application/json;
+            alias /usr/share/nginx/html/config.json;
+        }
+    }
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: front-config
+  namespace: f19-dev
+data:
+  config.json: |
+    {
+      "syntesizerBaseUrl": "https://api.f19.dev.dawidbladek0831.org/synthesizer",
+      "objectBaseUrl": "https://api.f19.dev.dawidbladek0831.org/file-storage",
+      "authorityUrl": "https://auth.dev.dawidbladek0831.org/realms/f19"
+    }
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front-nginx
+  namespace: f19-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: front-nginx
+  template:
+    metadata:
+      labels:
+        app: front-nginx
+    spec:
+      initContainers:
+        - name: copy-static
+          image: ghcr.io/dawidbladek0831/f19-front:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - cp -r /dist/* /usr/share/nginx/html/
+          volumeMounts:
+            - name: static-html
+              mountPath: /usr/share/nginx/html
+      containers:
+        - name: nginx
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: static-html
+              mountPath: /usr/share/nginx/html
+            - name: config-json
+              mountPath: /usr/share/nginx/html/config.json
+              subPath: config.json
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: nginx.conf
+      volumes:
+        - name: static-html
+          emptyDir: {}
+        - name: config-json
+          configMap:
+            name: front-config
+        - name: nginx-conf
+          configMap:
+            name: front-nginx-config
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-service
+  namespace: f19-dev
+spec:
+  selector:
+    app: front-nginx
+  ports:
+    - port: 80
+      targetPort: 80
+

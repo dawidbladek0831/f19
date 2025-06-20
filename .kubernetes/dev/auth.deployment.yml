@@ -53,20 +53,22 @@ spec:
               value: edge 
             - name: KEYCLOAK_HTTP_ENABLED
               value: "true"
+            - name: KEYCLOAK_ENABLE_HEALTH_ENDPOINTS
+              value: "true"
           readinessProbe: 
             httpGet:
               path: /realms/master 
               port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 12
           livenessProbe:
             httpGet:
               path: /realms/master
               port: 8080
             initialDelaySeconds: 60
-            periodSeconds: 10
-            failureThreshold: 3
+            periodSeconds: 30
+            failureThreshold: 12
 ---
 apiVersion: v1
 kind: Service

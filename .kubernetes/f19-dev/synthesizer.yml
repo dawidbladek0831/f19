@@ -18,6 +18,11 @@ spec:
           image: ghcr.io/dawidbladek0831/synthesizer:latest
           ports:
             - containerPort: 8080
+          resources:
+            requests:
+              memory: "1Gi"
+            limits:
+              memory: "2Gi"
           livenessProbe:
             httpGet:
               path: /
@@ -25,7 +30,6 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 30
             failureThreshold: 12
-
           readinessProbe:
             httpGet:
               path: /
@@ -35,7 +39,6 @@ spec:
             failureThreshold: 12
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -48,3 +51,17 @@ spec:
     - name: http
       port: 80
       targetPort: 8080
+
+---
+apiVersion: networking.gke.io/v1
+kind: GCPBackendPolicy
+metadata:
+  name: synthesizer-service-backend-policy
+  namespace: f19-dev
+spec:
+  default:
+    timeoutSec: 120
+  targetRef:
+    group: ""
+    kind: Service
+    name: synthesizer-service

@@ -20,6 +20,10 @@ data:
             default_type application/json;
             alias /usr/share/nginx/html/config.json;
         }
+        
+        location ~* \.mjs$ {
+            default_type text/javascript;
+        }
     }
 
 ---

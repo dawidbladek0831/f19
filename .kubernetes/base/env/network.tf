@@ -15,15 +15,15 @@ resource "google_compute_subnetwork" "subnet" {
   region        = var.region
   network       = google_compute_network.vpc_network.id
 }
-# --- proxy-only subnetwork ---
-resource "google_compute_subnetwork" "proxy_subnet" {
-  name          = "f-proxy-subnet" 
-  ip_cidr_range = "10.0.1.0/24" 
-  region        = var.region
-  network       = google_compute_network.vpc_network.id
-  purpose       = "REGIONAL_MANAGED_PROXY" # This is crucial for proxy-only subnetworks
-  role          = "ACTIVE"
-}
+# # --- proxy-only subnetwork ---
+# resource "google_compute_subnetwork" "proxy_subnet" {
+#   name          = "f-proxy-subnet" 
+#   ip_cidr_range = "10.0.1.0/24" 
+#   region        = var.region
+#   network       = google_compute_network.vpc_network.id
+#   purpose       = "REGIONAL_MANAGED_PROXY" # This is crucial for proxy-only subnetworks
+#   role          = "ACTIVE"
+# }
 
 resource "google_compute_firewall" "ssh" {
   name    = "ssh-access"

@@ -12,7 +12,6 @@ kubectl create secret generic cloudflare-api-token \
   --from-literal=api-token=$CF_API_TOKEN \
   --namespace=cert-manager
 
-
 # create objects
 kubectl apply -f "$SCRIPT_DIR/namespace.yml" 
 kubectl apply -f "$SCRIPT_DIR/gateway.yml" 

@@ -79,9 +79,9 @@ apply cert-manager
 
 config .env file based on .env.example file
 
-run base init script 
+run shared scripts
 
-    $ sh .kubernetes/base/apply.sh
+    $ sh .kubernetes/shared/apply.sh
 
 run dev and prod scripts
 

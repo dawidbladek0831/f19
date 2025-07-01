@@ -14,6 +14,10 @@ spec:
       labels:
         app: file-storage
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
         - name: file-storage
           image: ghcr.io/dawidbladek0831/file-storage:latest
@@ -27,9 +31,9 @@ spec:
             - name: SPRING_APPLICATION_NAME
               value: file-storage
             - name: OAUTH2_RESOURCE_SERVER_JWT_ISSUER_URI
-              value: http://auth-service.dev.svc.cluster.local/realms/f19
+              value: https://auth.dev.dawidbladek0831.org/realms/f19
             - name: OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI
-              value: http://auth-service.dev.svc.cluster.local/realms/f19/protocol/openid-connect/certs
+              value: https://auth.dev.dawidbladek0831.org/realms/f19/protocol/openid-connect/certs
             - name: MONGODB_HOST
               value: mongo-service.dev.svc.cluster.local
             - name: MONGODB_PORT
@@ -76,18 +80,3 @@ spec:
         resources:
           requests:
             storage: 1Gi
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: file-storage-service
-  namespace: f19-dev
-spec:
-  selector:
-    app: file-storage
-  type: LoadBalancer
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080

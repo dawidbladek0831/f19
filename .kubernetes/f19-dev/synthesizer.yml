@@ -4,7 +4,7 @@ metadata:
   name: synthesizer
   namespace: f19-dev
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: synthesizer
@@ -16,6 +16,8 @@ spec:
       containers:
         - name: synthesizer
           image: ghcr.io/dawidbladek0831/synthesizer:latest
+          command: ["uvicorn"]
+          args: ["app.main:app", "--host", "0.0.0.0", "--port", "8080", "--proxy-headers"]
           ports:
             - containerPort: 8080
           resources:
@@ -23,20 +25,13 @@ spec:
               memory: "1Gi"
             limits:
               memory: "2Gi"
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 8080
-            initialDelaySeconds: 60
-            periodSeconds: 30
-            failureThreshold: 12
           readinessProbe:
             httpGet:
               path: /
               port: 8080
             initialDelaySeconds: 60
-            periodSeconds: 30
-            failureThreshold: 12
+            periodSeconds: 60
+            failureThreshold: 999
 
 ---
 apiVersion: v1

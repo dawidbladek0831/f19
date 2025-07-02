@@ -83,7 +83,10 @@ run shared scripts
 
     $ sh .kubernetes/shared/apply.sh
 
-run dev and prod scripts
+run dev scripts
 
     $ sh .kubernetes/dev/apply.sh
-    $ sh .kubernetes/prod/apply.sh
+
+run f19-dev scripts
+
+    $ sh .kubernetes/f19-dev/apply.sh

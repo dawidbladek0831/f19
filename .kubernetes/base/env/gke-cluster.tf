@@ -26,10 +26,10 @@ resource "google_container_node_pool" "gke_nodes" {
   name       = "primary-pool"
   cluster    = google_container_cluster.gke_cluster.name
   location   = var.zone
-  node_count = 2
+  node_count = 1
 
   node_config {
-    machine_type = "e2-highcpu-8"
+    machine_type = "e2-highmem-4"
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform",
     ]

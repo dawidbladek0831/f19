@@ -1,92 +1,44 @@
-# AI-based Text-to-Speech (TTS) System
+# Text-to-Speech System
 
-## System Purpose
-The purpose of this system is to provide high-quality text-to-speech (TTS) synthesis using artificial intelligence. The system aims to offer a natural-sounding voice output suitable for various applications such as assistive technology, audiobooks, and customer service automation.
-
-# Setup
-## IAM
-Run keycloak and postgresDB:
-
-     docker-compose -p f19 -f .\.docker\docker-compose-auth.yaml up -d
-
-
-Config realm
-- Create realm using file realm-export.json
-- Create user
-- Regenerate Client Secret in fss Client
-
-## Supporting infrastructure
-Kafka
-
-    docker-compose -p f19 -f .\.docker\docker-compose-kafka.yaml up -d
+## Table of Contents
+* [General Info](#general-information)
+* [Documentation](#documentation)
+* [Demo](#demo)
+* [Technologies Used](#technologies-used)
+* [Screenshots](#screenshots)
+* [Project Status](#project-status)
 
 
-Mongo
+## General Information
+The Text-to-Speech System is designed to process text files (TXT, PDF), convert them into audio using Text-to-Speech models, and enable audio playback. Its core components include an Angular-based Frontend application, a Synthesizer application responsible for text-to-audio conversion, a File Storage application for managing files, and Keycloak as an identity provider.
 
-    docker-compose -p f19 -f .\.docker\docker-compose-mongo.yaml up -d
-
-
-## File Storage Service
-FFS
-
-    docker-compose -p f19 -f .\.docker\docker-compose-file_storage_service.yaml up -d
-
-# docker
-## front
-build image
-
-    
-    sudo docker buildx build . -f ./.docker/Dockerfile -t ghcr.io/dawidbladek0831/f19-front:latest
-    docker push  ghcr.io/dawidbladek0831/f19-front:latest
-    
-## synthesizer
-build image
+## Documentation
+Complete documentation is available in the [.doc folder](./.doc/doc.md).
 
 
-    sudo docker buildx build . -f .docker/Dockerfile -t ghcr.io/dawidbladek0831/synthesizer:latest
-    docker push ghcr.io/dawidbladek0831/synthesizer:latest
-    
-# kubernetes
-## setup
-make soure that u are auth in gcloud
+## Demo
+Live demo:
+- https://f19.dev.dawidbladek0831.org/, or
+- https://f19.dawidbladek0831.org/
+
+## Technologies Used
+- Angular
+- FastAPI
+- Keycloak
+
+## Screenshots
+Main view after opening a PDF file in the application.
+![Example screenshot](./.doc/readme/openedFile.png)
 
 
-    $ gcloud init
+File menu allowing users to open or delete uploaded files.
+![Example screenshot](./.doc/readme/openedSavedFile.png)
 
-make sure that google-cloud-cli-gke-gcloud-auth-plugin is available
+Dialog window for selecting a Text-to-Speech model.
+![Example screenshot](./.doc/readme/selectModel.png)
 
-    $ sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
+Editable text view for modifying the loaded file content before synthesis.
+![Example screenshot](./.doc/readme/editableForm.png)
 
-## enviroment
-
-
-    $ terraform -chdir=.kubernetes/base/env init
-    $ terraform -chdir=.kubernetes/base/env apply 
-
-
-get kubeconfig
-
-
-    $ gcloud container clusters get-credentials f-gke-cluster --zone europe-central2-a --project f-projects-463016
-
-## cluster
-
-apply cert-manager
-
-
-    $ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
-
-
-config .env file based on .env.example file
-
-run shared scripts
-
-    $ sh .kubernetes/shared/apply.sh
-
-run dev scripts
-
-    $ sh .kubernetes/dev/apply.sh
-
-run f19-dev scripts
-
-    $ sh .kubernetes/f19-dev/apply.sh
+## Project Status
+Project is: _no longer being worked on_. B

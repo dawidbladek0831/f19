@@ -94,20 +94,22 @@ This diagram provides a clear overview of the system's major deployable units an
 | Synthesizer | Convert text to audio using Text-to-Speech moodels |
 
 ### 5.1.1. Level 2: Component Level - Frontend
-Provides system functionality to user
+Provides system functionality to user.
+Project is on [Github](https://github.com/dawidbladek0831/f19-front)
 
 The application's interface was designed in Figma using a custom Design System, ensuring visual consistency and ease of development.[link](https://www.figma.com/design/4yVH2pJ0FJm6rr9hHv393o/f19?node-id=345-3147&p=f&t=8kQWeczoXBZzpmIt-0)
 
 
 ### 5.1.2. Level 2: Component Level - Synthesizer
 Convert text to audio using Text-to-Speech moodels
+Project is on [Github](https://github.com/dawidbladek0831/f19-synthesizer)
 
 ![Alt text](./export/diagram-component_textToSpeechSystem_synthesizer.drawio.png)
 ![Alt text](./export/diagram-legend.drawio.png)
 
 #### Components
 The service breaks down in 1 components:
-    synthesizer - component is responsible for: manage models and syntheize text;
+- synthesizer - component is responsible for manage models and syntheize text;
 
 #### REST API documentation
 Comprehensive documentation for the REST API can be accessed via the following [link](https://www.postman.com/dawidbladek0831/f19).

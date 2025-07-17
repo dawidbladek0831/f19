@@ -3,6 +3,7 @@
 ## Table of Contents
 * [General Info](#general-information)
 * [Documentation](#documentation)
+* [Services](#services)
 * [Demo](#demo)
 * [Technologies Used](#technologies-used)
 * [Screenshots](#screenshots)
@@ -15,6 +16,10 @@ The Text-to-Speech System is designed to process text files (TXT, PDF), convert 
 ## Documentation
 Complete documentation is available in the [.doc folder](./.doc/doc.md).
 
+## Services
+Sytem is composed of two services:
+- Front - [Github](https://github.com/dawidbladek0831/f19-front)
+- Synthesizer - [Github](https://github.com/dawidbladek0831/f19-synthesizer)
 
 ## Demo
 Live demo:

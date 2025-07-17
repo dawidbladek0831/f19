@@ -56,7 +56,7 @@ _This section precisely defines the boundaries of the TTS system and illustrates
 
 The business context describes the TTS system as a black box, illustrating its interactions with various users and other systems in its environment.
 
-![Alt text](./export/diagram-SystemContext_textToSpeechSystem.drawio.png)
+![Alt text](./export/diagram-systemContext_textToSpeechSystem.drawio.png)
 ![Alt text](./export/diagram-legend.drawio.png)
 
 # 4. Solution Strategy
@@ -73,7 +73,7 @@ _This section describes the static decomposition of the TTS system into its majo
 
 This diagram depicts the main systems: Text-to-Speech System, File Storage  and IAM.
 
-![Alt text](./export/diagram-SystemContext_textToSpeechSystem.drawio.png)
+![Alt text](./export/diagram-systemContext_textToSpeechSystem.drawio.png)
 ![Alt text](./export/diagram-legend.drawio.png)
 
 | System        | Description   |
@@ -82,7 +82,7 @@ This diagram depicts the main systems: Text-to-Speech System, File Storage  and 
 |Identity and Access Management (IAM) system |	System responsible for authentication and user management. |
 | File Storage | System responsible for storing files | 
 
-## 5.1. Level 1: Container Diagram - Text-to-Speech System
+## 5.1. Level 1: Container Level - Text-to-Speech System
 This diagram provides a clear overview of the system's major deployable units and their communication pathways.
 
 ![Alt text](./export/diagram-container_textToSpeechSystem.drawio.png)
@@ -93,11 +93,34 @@ This diagram provides a clear overview of the system's major deployable units an
 | Frontend | Provides system functionality to user |
 | Synthesizer | Convert text to audio using Text-to-Speech moodels |
 
-### 5.1.1. Level 2: Component Diagram - Frontend
-// todo link to the project
+### 5.1.1. Level 2: Component Level - Frontend
+Provides system functionality to user
 
-### 5.1.2. Level 2: Component Diagram - Synthesizer
-// todo link to the project
+The application's interface was designed in Figma using a custom Design System, ensuring visual consistency and ease of development.[link](https://www.figma.com/design/4yVH2pJ0FJm6rr9hHv393o/f19?node-id=345-3147&p=f&t=8kQWeczoXBZzpmIt-0)
+
+
+### 5.1.2. Level 2: Component Level - Synthesizer
+Convert text to audio using Text-to-Speech moodels
+
+![Alt text](./export/diagram-component_textToSpeechSystem_synthesizer.drawio.png)
+![Alt text](./export/diagram-legend.drawio.png)
+
+#### Components
+The service breaks down in 1 components:
+    synthesizer - component is responsible for: manage models and syntheize text;
+
+#### REST API documentation
+Comprehensive documentation for the REST API can be accessed via the following [link](https://www.postman.com/dawidbladek0831/f19).
+
+#### Security
+none
+
+## 5.2. Level 1: Container Level - File Storage System
+System documentation [link](https://github.com/dawidbladek0831/f18)
+
+## 5.3. Level 1: Container Level - Identity and Access Management (IAM) System
+The system integrates Keycloak as the Identity and Access Management (IAM) solution, eliminating the need to develop custom authentication and authorization mechanisms. This choice reduces development effort, enhances security, and ensures compliance with modern authentication standards like OAuth2 and OpenID Connect.
+
 
 # 6. Runtime View
 _This section details the dynamic behavior of the TTS system by illustrating how its building blocks interact over time to fulfill key use cases and scenarios. It provides insights into the flow of data and control, which static diagrams alone cannot fully capture._
@@ -123,35 +146,142 @@ _This section details the dynamic behavior of the TTS system by illustrating how
 _Software needs hardware to execute on, that’s where the deployment view comes into play: It shows the technical infrastructure with environments, computers, processors, networks and network-topologies._
 
 3 deployment environments
+
 # 7.1. Development environment
 ![Alt text](./export/diagram-deployment_development_textToSpeechSystem.drawio.png)
-## Setup
+
+## 7.1.1. Setup infrastructure 
+### Kafka
+
+    $ docker-compose -p f19 -f .\.docker\docker-compose-kafka.yaml up -d
+
+### Mongo
+
+    $ docker-compose -p f19 -f .\.docker\docker-compose-mongo.yaml up -d
+
+## 7.1.2. Setup external systems
 ### IAM
-Run keycloak and postgresDB:
+Run keycloak and dedicated postgres database:
 
-     docker-compose -p f19 -f .\.docker\docker-compose-auth.yaml up -d
-
+    $ docker-compose -p f19 -f .\.docker\docker-compose-auth.yaml up -d
 
 Config realm
-- Create realm using file realm-export.json
+- Create realm using file ./.config/realm-export.json
 - Create user
 
-### Supporting infrastructure
-Kafka
+### File Storage
 
-    docker-compose -p f19 -f .\.docker\docker-compose-kafka.yaml up -d
+    $ docker-compose -p f19 -f .\.docker\docker-compose-file_storage.yaml up -d
 
+## 7.1.3. Synthesizer
+Setting up the Synthesizer Service for local development involves several steps to ensure all dependencies are met and the application can run correctly. 
+### 7.1.3.1. Setup
+#### Virtual Environment
+It is a recommended practice to isolate project-specific Python dependencies using a virtual environment. This prevents conflicts with other Python projects or system-wide packages.
 
-Mongo
+Create the virtual environment within the project's root directory
 
-    docker-compose -p f19 -f .\.docker\docker-compose-mongo.yaml up -d
+    $ python3 -m venv.venv
 
+Next, activate the newly created virtual environment
 
-### File Storage Service
-FFS
+    $ source.venv/bin/activate
 
-    docker-compose -p f19 -f .\.docker\docker-compose-file_storage_service.yaml up -d
+#### Installing Python Dependencies
+Install the core Python packages specified in the requirements.txt file:
 
+    (.venv)$ pip install -r requirements.txt
+
+Install FastAPI along with a set of recommended optional dependencies—such as uvicorn, httpx, and others—primarily for running and testing FastAPI applications.
+
+    (.venv)$ pip install "fastapi[standard]"
+
+#### Installing _espeak_
+As previously noted, espeak is a critical system-level dependency for the phonemizer library, which the Synthesizer Service relies on for its text processing capabilities. 
+
+Update your system's package lists and install espeak
+
+    $ sudo apt update
+    $ sudo apt install espeak -y
+
+#### Downloading Text-to-Speech Models
+The Synthesizer Service operates using text-to-speech models that are stored locally within the ./models directory. These models are not included in the Git repository and must be downloaded manually as a distinct setup step. The project provides specific Jupyter notebooks located in the ./notebooks directory to facilitate this download process.
+
+Install ipykernel. This registers your virtual environment as a Jupyter kernel, allowing notebooks to correctly utilize the Python packages installed within your project's isolated environment.
+
+    (.venv)$ python3 -m ipykernel install --user --name=myenv --display-name "Python (myenv)"
+
+Start Jupyter Notebook
+
+    (.venv)$ jupyter notebook
+
+It is crucial to change the **kernel** for the notebook to "Python (myenv)" (or the display name assigned to your virtual environment). This ensures the notebook's code executes within your project's isolated environment, accessing the correct dependencies.
+
+In the Jupyter web interface that opens in your browser, navigate to the ./notebooks directory and open the model download notebook.
+
+Execute cells within the notebook to initiate the model download process. The models will be saved to the ./models directory.
+
+After the notebooks complete execution, verify that the necessary model files are present in the ./models directory within your project's root.
+
+### 7.1.3.2. Running
+#### Development
+Ensure your Python virtual environment is active
+
+    $ source .venv/bin/activate
+
+Start the FastAPI development server
+
+    (.venv)$ fastapi dev app/main.py
+
+The service will typically become accessible via your web browser or API client at http://localhost:8080. Interactive API documentation, including Swagger UI and ReDoc, can then be accessed at http://localhost:8080/docs and http://localhost:8080/redoc respectively.
+
+#### Docker
+In some development workflows, it might be preferable to run just image. In that case you no need to complete setup's steps.
+
+    $ docker run -p 8080:8080 ghcr.io/dawidbladek0831/synthesizer:latest
+
+### 7.1.3.3. Dockerization 
+The Synthesizer Service can be containerized by building a Docker image. The project's Dockerfile is located in the .docker/Dockerfile path.
+
+To build the Docker image, the docker buildx build command is utilized.
+
+    $ sudo docker buildx build . -f .docker/Dockerfile -t ghcr.io/dawidbladek0831/synthesizer:latest
+
+To change image's tag to corresponding version
+
+    $ docker tag ghcr.io/dawidbladek0831/synthesizer:latest ghcr.io/dawidbladek0831/synthesizer:1.0.0
+
+To push image to registy:
+
+    $ docker push ghcr.io/dawidbladek0831/synthesizer:latest
+
+## 7.1.4 Front
+
+### 7.1.4.1. Running
+Installing Dependencies
+
+    $ npm install
+
+Start a local development server
+
+    $ ng serve
+
+The service will typically become accessible via your web browser or API client at http://localhost:4200.
+
+### 7.1.4.2. Dockerization 
+Service can be containerized by building a Docker image. The project's Dockerfile is located in the .docker/Dockerfile path.
+
+To build the Docker image, the docker buildx build command is utilized.
+
+    $ sudo docker buildx build . -f .docker/Dockerfile -t ghcr.io/dawidbladek0831/f19-front:latest
+
+To change image's tag to corresponding version
+
+    $ docker tag ghcr.io/dawidbladek0831/f19-front:latest ghcr.io/dawidbladek0831/f19-front:1.0.0
+
+To push image to registy:
+
+    $ docker push ghcr.io/dawidbladek0831/f19-front:latest
 
 # 7.2. Staging environment 
 The staging environment is deployed on Google Cloud, provisioned using Terraform, and runs on Kubernetes.

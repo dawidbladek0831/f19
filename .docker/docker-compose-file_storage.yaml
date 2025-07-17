@@ -1,7 +1,7 @@
 services:
-  file-storage-service:
+  file-storage:
     restart: unless-stopped
-    image: ghcr.io/dawidbladek0831/file-storage-service:latest
+    image: ghcr.io/dawidbladek0831/file-storage:latest
     ports:
       - '9022:8080'
     extra_hosts:
@@ -9,7 +9,7 @@ services:
     environment:
       - APPLICATION_STORAGE_LOCAL_PATH=fileStorageDirName
       - SERVER_PORT=8080
-      - SPRING_APPLICATION_NAME=file-storage-service
+      - SPRING_APPLICATION_NAME=file-storage
       - OAUTH2_RESOURCE_SERVER_JWT_ISSUER_URI=http://localhost:8080/realms/f19
       - OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI=http://host.docker.internal:8080/realms/f19/protocol/openid-connect/certs
       - MONGODB_HOST=mongo
